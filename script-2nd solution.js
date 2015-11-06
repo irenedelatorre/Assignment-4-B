@@ -75,63 +75,58 @@ function dataLoaded(error,data,metadata){
         .entries(data);
     console.log(nestedData);
 
-    //nestedData[].values have to be AFTER nestedData. If it's outside the function, it won't work as nestedData is inside the dataLoaded function.
-    var teaDatum = nestedData[0].values;
-    var coffeeDatum = nestedData[1].values;
+    var graphs = plot.selectAll('.graph')
+        .data(nestedData)
+        .enter()
+        .append('g')
+        .attr('class','graph');
 
-    nestedData.forEach(function(d){
-        plot.append("path")
-            .datum(coffeeDatum)
-            .attr("class", "coffee-data-line data-line")
-            .attr("d",lineGenerator);
-        plot.append("path")
-            .attr("class", "data-area coffee-data-area")
-            .datum(coffeeDatum)
-            .attr("d", areaGenerator);
+    graphs
+        .append('path')
+        .attr('d', function(d){
+            return areaGenerator(d.values);
+        })
+        .attr("class", function (d){
+            if (d.key=="Coffee, green"){
+                return ("data-area coffee-data-area")
+            }if (d.key=="Tea"){
+                return ("data-area tea-data-area")
+            }
+        });
 
-        plot.append("g")
-            .selectAll("circles")
-            .data(coffeeDatum)
-            .enter()
-            .append("circle")
-            .attr("class", "coffee-data-point data-point")
-            .attr("cx", function(d){
-                return scaleX(d.year);
-            })
-            .attr("cy", function(d){
-                return scaleY(d.value);
-            })
-            .attr("r", 5)
-            .call(attachTooltip);
+    graphs
+        .append('path')
+        .attr('d', function(d){
+            return lineGenerator(d.values);
+        })
+        .attr("class", function (d){
+            if (d.key=="Coffee, green"){
+                return ("coffee-data-line data-line")
+            }if (d.key=="Tea"){
+                return ("tea-data-line data-line")
+            }
+        });
 
-    });
-
-    nestedData.forEach(function(d){
-        plot.append("path")
-            .datum(teaDatum)
-            .attr("class", "tea-data-line data-line")
-            .attr("d",lineGenerator);
-
-        plot.append("path")
-            .attr("class", "data-area tea-data-area")
-            .datum(teaDatum)
-            .attr("d", areaGenerator);
-
-        plot.append("g")
-            .selectAll("circles")
-            .data(teaDatum)
-            .enter()
-            .append("circle")
-            .attr("class", " data-point tea-data-point")
-            .attr("cx", function(d){
-                return scaleX(d.year);
-            })
-            .attr("cy", function(d){
-                return scaleY(d.value);
-            })
-            .attr("r", 5)
-            .call(attachTooltip);
-    });
+    graphs
+        .selectAll("circle")
+        .data(function(d){ return d.values})
+        .enter()
+        .append("circle")
+        .attr("class", function (d){
+            if (d.item=="Coffee, green"){
+                return ("coffee-data-point data-point ")}
+            if (d.item=="Tea"){
+                return (" tea-data-point data-point")}
+            //cannot make tea data points appear first (tooltip doesn't appear)
+        })
+        .attr("cx", function(d){
+            return scaleX(d.year);
+        })
+        .attr("cy", function(d){
+            return scaleY(d.value);
+        })
+        .attr("r", 5)
+        .call(attachTooltip);
 }
 
 function attachTooltip(selection){
